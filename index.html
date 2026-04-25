@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Visit to the Prado Museum</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Patrick+Hand&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: 'Patrick Hand', cursive;
+        color: white;
+        height: 100vh;
+        overflow: hidden;
+        user-select: none;
+        cursor: default;
+    }
+
+    /* Progress bar */
+    .progress-bar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 5px;
+        background: rgba(255,255,255,0.85);
+        z-index: 100;
+        transition: width 0.4s ease;
+        border-radius: 0 3px 3px 0;
+        box-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    .slideshow {
+        position: relative;
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .slide {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s ease;
+    }
+    .slide.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .slide-content {
+        position: relative;
+        z-index: 1;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid rgba(255,255,255,0.25);
+        border-radius: 30px;
+        padding: 40px 50px;
+        max-width: 780px;
+        width: 88%;
+        text-align: center;
+        max-height: 88vh;
+        overflow-y: auto;
+    }
+
+    .slide.active .slide-content {
+        animation: popIn 0.5s ease forwards;
+    }
+
+    @keyframes popIn {
+        0% { transform: scale(0.85) translateY(30px); opacity: 0; }
+        100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .emoji-big {
+        font-size: 3.5rem;
+        display: block;
+        margin-bottom: 10px;
+        animation: bounce 2s infinite;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .emoji-big:hover { transform: scale(1.2); }
+    .emoji-big.clicked {
+        animation: spinBounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    @keyframes spinBounce {
+        0% { transform: scale(1) rotate(0deg); }
+        40% { transform: scale(1.5) rotate(200deg); }
+        70% { transform: scale(0.9) rotate(340deg); }
+        100% { transform: scale(1) rotate(360deg); }
+    }
+
+    .slide-content h1, .slide-content h2 {
+        font-family: 'Baloo 2', cursive;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .slide-content h2 {
+        font-size: 2.2rem;
+        margin-bottom: 14px;
+    }
+    .slide-content p {
+        font-size: 1.4rem;
+        line-height: 1.6;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    }
+    .slide:first-child .slide-content h1 {
+        font-size: 3rem;
+        margin-bottom: 10px;
+    }
+    .slide:first-child .emoji-big { font-size: 4.5rem; }
+
+    /* Slide images */
+    .slide-img {
+        max-width: 100%;
+        max-height: 240px;
+        border-radius: 16px;
+        margin: 16px auto 10px;
+        display: block;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        border: 3px solid rgba(255,255,255,0.3);
+        object-fit: contain;
+        background: rgba(0,0,0,0.2);
+    }
+    .slide-img.wide {
+        max-height: 200px;
+        max-width: 100%;
+    }
+    .slide-img.tall {
+        max-height: 260px;
+        max-width: 60%;
+    }
+    .img-caption {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.55);
+        margin-top: 2px;
+        margin-bottom: 8px;
+        font-style: italic;
+    }
+
+    /* Fun fact bubbles */
+    .fun-fact {
+        display: none;
+        margin-top: 14px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 10px 18px;
+        font-size: 1.1rem;
+        border: 1px dashed rgba(255,255,255,0.5);
+        animation: fadeUp 0.4s ease;
+    }
+    .fun-fact.visible { display: block; }
+    @keyframes fadeUp {
+        0% { opacity: 0; transform: translateY(10px); }
+        100% { opacity: 1; transform: translateY(0); }
+    }
+    .fun-fact-btn {
+        display: inline-block;
+        margin-top: 12px;
+        padding: 7px 20px;
+        background: rgba(255,255,255,0.25);
+        border: 2px solid rgba(255,255,255,0.4);
+        border-radius: 25px;
+        color: white;
+        font-family: 'Baloo 2', cursive;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .fun-fact-btn:hover {
+        background: rgba(255,255,255,0.4);
+        transform: scale(1.05);
+    }
+    .fun-fact-btn.opened { opacity: 0.5; }
+
+    /* Navigation arrows */
+    .nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(5px);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: white;
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+    }
+    .nav-btn:hover {
+        background: rgba(255,255,255,0.35);
+        transform: translateY(-50%) scale(1.15);
+    }
+    .nav-btn:active { transform: translateY(-50%) scale(0.95); }
+    .nav-btn.prev { left: 25px; }
+    .nav-btn.next { right: 25px; }
+
+    .slide-counter {
+        position: absolute;
+        bottom: 75px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 1rem;
+        color: rgba(255,255,255,0.5);
+        z-index: 10;
+        font-family: 'Baloo 2', cursive;
+    }
+
+    .dots {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+    .dot {
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.3);
+        cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid rgba(255,255,255,0.4);
+    }
+    .dot.active {
+        background: white;
+        transform: scale(1.4);
+    }
+    .dot:hover { background: rgba(255,255,255,0.6); }
+
+    .hint {
+        position: absolute;
+        bottom: 8px;
+        right: 18px;
+        font-size: 0.7rem;
+        color: rgba(255,255,255,0.25);
+        font-family: Arial, sans-serif;
+    }
+
+    /* Floating stars */
+    .stars {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+    .star {
+        position: absolute;
+        color: rgba(255,255,255,0.15);
+        animation: twinkle 3s infinite alternate;
+    }
+    @keyframes twinkle {
+        0% { opacity: 0.2; transform: scale(1); }
+        100% { opacity: 0.7; transform: scale(1.2); }
+    }
+
+    /* Click sparkle effect */
+    .sparkle {
+        position: fixed;
+        pointer-events: none;
+        z-index: 999;
+        font-size: 1.2rem;
+        animation: sparkleAnim 0.8s ease forwards;
+    }
+    @keyframes sparkleAnim {
+        0% { opacity: 1; transform: translate(0, 0) scale(1); }
+        100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+    }
+
+    /* Confetti */
+    .confetti-piece {
+        position: fixed;
+        z-index: 999;
+        pointer-events: none;
+        animation: confettiFall 3s ease forwards;
+    }
+    @keyframes confettiFall {
+        0% { opacity: 1; transform: translateY(0) rotate(0deg); }
+        100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
+    }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<div class="slideshow" id="slideshow">
+
+    <!-- Slide 0: Title -->
+    <div class="slide active" data-bg="linear-gradient(135deg, #667eea, #764ba2)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🏛️</span>
+            <h1>My Visit to the Prado Museum!</h1>
+            <img class="slide-img wide" src="images/prado-museum.jpg" alt="Museo del Prado">
+            <p>By Gonzalo Ruiz de Villa, 8 years old</p>
+            <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
+            <div class="fun-fact">The Prado Museum has over 8,000 paintings! But they can only show about 1,300 at a time.</div>
+        </div>
+    </div>
+
+    <!-- Slide 1 -->
+    <div class="slide" data-bg="linear-gradient(135deg, #f093fb, #f5576c)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">👋</span>
+            <h2>Hello!</h2>
+            <p>Hi everyone! My name is Gonzalo Ruiz de Villa and I went to the Prado Museum in Madrid. It was SO cool, I have to tell you about it!</p>
+        </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" data-bg="linear-gradient(135deg, #4facfe, #00f2fe)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">👦👦👦👦</span>
+            <h2>My Crew</h2>
+            <p>I went with my brother Alejandro and my friends Juan and Claudio. We also had a guide just for us. We felt super important!</p>
+        </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" data-bg="linear-gradient(135deg, #43e97b, #38f9d7)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🧑‍🏫</span>
+            <h2>Our Guide</h2>
+            <p>The guide knew EVERYTHING about the paintings. She told us secret stories about the artists. It was like being a detective!</p>
+        </div>
+    </div>
+
+    <!-- Slide 4: El Greco -->
+    <div class="slide" data-bg="linear-gradient(135deg, #fa709a, #fee140)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🎨</span>
+            <h2>El Greco</h2>
+            <img class="slide-img tall" src="images/nobleman.jpg" alt="The Nobleman with his Hand on his Chest by El Greco">
+            <div class="img-caption">The Nobleman with his Hand on his Chest</div>
+            <p>First, we saw paintings by El Greco. His people looked super tall and a little weird, like they were made of stretchy gum!</p>
+            <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
+            <div class="fun-fact">El Greco means "The Greek"! His real name was Domenikos Theotokopoulos. Try saying that fast!</div>
+        </div>
+    </div>
+
+    <!-- Slide 5: El Greco details -->
+    <div class="slide" data-bg="linear-gradient(135deg, #a18cd1, #fbc2eb)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🤔</span>
+            <h2>That Serious Guy</h2>
+            <img class="slide-img tall" src="images/el-greco-portrait.jpg" alt="El Greco portrait">
+            <div class="img-caption">El Greco (self-portrait)</div>
+            <p>The nobleman looked very serious and important, like a principal but fancier. The guide said El Greco used light and shapes to show how people were feeling inside!</p>
+        </div>
+    </div>
+
+    <!-- Slide 6: Velazquez -->
+    <div class="slide" data-bg="linear-gradient(135deg, #ffecd2, #fcb69f)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">👑</span>
+            <h2>Velazquez</h2>
+            <p>Then we saw paintings by Velazquez. He was like the royal family's personal photographer, but with paint! My favorite was "Las Meninas."</p>
+            <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
+            <div class="fun-fact">Velazquez painted himself INTO "Las Meninas"! He's the tall guy holding a paintbrush on the left side.</div>
+        </div>
+    </div>
+
+    <!-- Slide 7: Las Meninas -->
+    <div class="slide" data-bg="linear-gradient(135deg, #a1c4fd, #c2e9fb)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">👸🐕</span>
+            <h2>Las Meninas</h2>
+            <img class="slide-img" src="images/las-meninas.jpg" alt="Las Meninas by Velazquez">
+            <div class="img-caption">Las Meninas - Diego Velazquez, 1656</div>
+            <p>It's a HUGE painting with a little princess, her helpers, and a big fluffy dog. The best part? Everyone in the painting is looking right at YOU!</p>
+        </div>
+    </div>
+
+    <!-- Slide 8: Magic Eyes -->
+    <div class="slide" data-bg="linear-gradient(135deg, #6a11cb, #2575fc)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">✨</span>
+            <h2>Magic Eyes!</h2>
+            <p>When you move around, their eyes FOLLOW you. Like they're alive! It's the coolest trick I've ever seen in a painting. A bit spooky too!</p>
+        </div>
+    </div>
+
+    <!-- Slide 9: The King -->
+    <div class="slide" data-bg="linear-gradient(135deg, #f5af19, #f12711)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🤴</span>
+            <h2>The King's Painter</h2>
+            <img class="slide-img tall" src="images/philip-iv.jpg" alt="King Philip IV on horseback by Velazquez">
+            <div class="img-caption">King Philip IV on Horseback - Velazquez</div>
+            <p>Velazquez painted for King Philip IV. Imagine having someone paint your family instead of taking selfies. That was life back then!</p>
+        </div>
+    </div>
+
+    <!-- Slide 10: Goya -->
+    <div class="slide" data-bg="linear-gradient(135deg, #0c3483, #a2b6df)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🌙</span>
+            <h2>Goya</h2>
+            <img class="slide-img tall" src="images/goya-selfportrait.jpg" alt="Goya self-portrait">
+            <div class="img-caption">Goya - Self Portrait, 1815</div>
+            <p>After that, we saw paintings by Goya. Some were bright and happy, but others were really dark and a little scary. He painted all kinds of feelings.</p>
+            <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
+            <div class="fun-fact">Goya painted on the walls of his own house! Those paintings are called the "Black Paintings" and they're in the Prado too.</div>
+        </div>
+    </div>
+
+    <!-- Slide 11: Third of May -->
+    <div class="slide" data-bg="linear-gradient(135deg, #485563, #29323c)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">😢</span>
+            <h2>A Sad Painting</h2>
+            <img class="slide-img wide" src="images/third-of-may.jpg" alt="The Third of May 1808 by Goya">
+            <div class="img-caption">The Third of May 1808 - Francisco de Goya</div>
+            <p>I remember "The Third of May 1808." It shows a really sad moment in history. It made me feel quiet inside. Some art makes you think a lot.</p>
+        </div>
+    </div>
+
+    <!-- Slide 12: Adam and Eve -->
+    <div class="slide" data-bg="linear-gradient(135deg, #11998e, #38ef7d)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🍎🐍</span>
+            <h2>Adam and Eve</h2>
+            <img class="slide-img" src="images/adam-eve.jpg" alt="Adam and Eve by Albrecht Durer">
+            <div class="img-caption">Adam and Eve - Albrecht D&uuml;rer, 1507</div>
+            <p>We saw a painting of Adam and Eve with a tree and a sneaky snake. The guide said this is one of the oldest stories ever told!</p>
+        </div>
+    </div>
+
+    <!-- Slide 13: Jesus -->
+    <div class="slide" data-bg="linear-gradient(135deg, #c471f5, #fa71cd)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">💧</span>
+            <h2>Being Kind</h2>
+            <img class="slide-img wide" src="images/tintoretto.jpg" alt="Christ Washing the Disciples Feet by Tintoretto">
+            <div class="img-caption">Christ Washing the Disciples' Feet - Tintoretto</div>
+            <p>We also saw Jesus washing the feet of his friends. That means even if you're super important, you should still be nice and help others. I liked that lesson!</p>
+        </div>
+    </div>
+
+    <!-- Slide 14: Painter Secrets -->
+    <div class="slide" data-bg="linear-gradient(135deg, #f7971e, #ffd200)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🔍</span>
+            <h2>Painter Secrets</h2>
+            <p>The guide showed us how painters use colors, light, and shadows to make things look real. Some paintings looked SO real I wanted to touch them (but you can't!).</p>
+        </div>
+    </div>
+
+    <!-- Slide 15: The Museum -->
+    <div class="slide" data-bg="linear-gradient(135deg, #e44d26, #f16529)">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🏰</span>
+            <h2>The Museum</h2>
+            <img class="slide-img wide" src="images/prado-museum.jpg" alt="Museo del Prado exterior">
+            <div class="img-caption">Museo del Prado, Madrid</div>
+            <p>The museum was ENORMOUS and SO beautiful. Walking inside felt like traveling back in time. Like a time machine but with paintings!</p>
+            <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
+            <div class="fun-fact">The Prado Museum opened in 1819. That's over 200 years ago! It's one of the most visited museums in the whole world.</div>
+        </div>
+    </div>
+
+    <!-- Slide 16: Thank You -->
+    <div class="slide" data-bg="linear-gradient(135deg, #667eea, #764ba2)" data-confetti="true">
+        <div class="stars"></div>
+        <div class="slide-content">
+            <span class="emoji-big">🎉</span>
+            <h2>Thank You!</h2>
+            <p>I LOVED this visit! I learned so much and had the best time ever. I really want to go back someday. Thanks for listening to my story!</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <button class="nav-btn prev" onclick="changeSlide(-1)">&#10094;</button>
+    <button class="nav-btn next" onclick="changeSlide(1)">&#10095;</button>
+
+    <div class="slide-counter"><span id="current">1</span> / <span id="total"></span></div>
+    <div class="dots" id="dots"></div>
+    <div class="hint">Use arrow keys, swipe, or click to navigate</div>
+</div>
+
+<script>
+    const slides = document.querySelectorAll('.slide');
+    const dotsContainer = document.getElementById('dots');
+    const totalSpan = document.getElementById('total');
+    const currentSpan = document.getElementById('current');
+    const progressBar = document.getElementById('progress');
+    let currentSlide = 0;
+
+    // Apply backgrounds
+    slides.forEach(slide => {
+        slide.style.background = slide.dataset.bg;
+    });
+
+    // Create dots
+    slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+    });
+
+    // Create floating stars
+    document.querySelectorAll('.stars').forEach(container => {
+        for (let i = 0; i < 12; i++) {
+            const star = document.createElement('span');
+            star.classList.add('star');
+            star.textContent = ['\u2726', '\u2727', '\u22C6', '\u2736'][Math.floor(Math.random() * 4)];
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            star.style.animationDelay = (Math.random() * 3) + 's';
+            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            container.appendChild(star);
+        }
+    });
+
+    totalSpan.textContent = slides.length;
+    updateProgress();
+
+    function updateProgress() {
+        const pct = ((currentSlide) / (slides.length - 1)) * 100;
+        progressBar.style.width = pct + '%';
+    }
+
+    function goToSlide(n) {
+        slides[currentSlide].classList.remove('active');
+        dotsContainer.children[currentSlide].classList.remove('active');
+        currentSlide = n;
+        slides[currentSlide].classList.add('active');
+        dotsContainer.children[currentSlide].classList.add('active');
+        currentSpan.textContent = currentSlide + 1;
+        updateProgress();
+
+        // Confetti on last slide
+        if (slides[currentSlide].dataset.confetti === 'true') {
+            launchConfetti();
+        }
+    }
+
+    function changeSlide(dir) {
+        let next = currentSlide + dir;
+        if (next < 0) next = slides.length - 1;
+        if (next >= slides.length) next = 0;
+        goToSlide(next);
+    }
+
+    // Fun fact toggle
+    function toggleFact(btn) {
+        const fact = btn.nextElementSibling;
+        fact.classList.toggle('visible');
+        btn.classList.toggle('opened');
+        btn.textContent = fact.classList.contains('visible') ? '👀 Hide Fact' : '🤓 Fun Fact!';
+    }
+
+    // Emoji click spin
+    document.querySelectorAll('.emoji-big').forEach(emoji => {
+        emoji.addEventListener('click', (e) => {
+            e.stopPropagation();
+            emoji.classList.remove('clicked');
+            void emoji.offsetWidth;
+            emoji.classList.add('clicked');
+            createSparkles(e.clientX, e.clientY);
+            setTimeout(() => emoji.classList.remove('clicked'), 600);
+        });
+    });
+
+    // Click sparkle effect
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-btn') || e.target.closest('.dot') || e.target.closest('.fun-fact-btn')) return;
+        createSparkles(e.clientX, e.clientY);
+    });
+
+    function createSparkles(x, y) {
+        const emojis = ['\u2728', '\u2B50', '\uD83D\uDCAB', '\uD83C\uDF1F', '\u2726'];
+        for (let i = 0; i < 6; i++) {
+            const spark = document.createElement('span');
+            spark.classList.add('sparkle');
+            spark.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            spark.style.left = x + 'px';
+            spark.style.top = y + 'px';
+            const angle = (Math.PI * 2 * i) / 6;
+            const dist = 40 + Math.random() * 40;
+            spark.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+            spark.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+            document.body.appendChild(spark);
+            setTimeout(() => spark.remove(), 800);
+        }
+    }
+
+    // Confetti
+    function launchConfetti() {
+        const colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6eb4', '#a66cff'];
+        for (let i = 0; i < 80; i++) {
+            const piece = document.createElement('div');
+            piece.classList.add('confetti-piece');
+            piece.style.left = Math.random() * 100 + 'vw';
+            piece.style.top = -10 + 'px';
+            piece.style.width = (Math.random() * 10 + 5) + 'px';
+            piece.style.height = (Math.random() * 10 + 5) + 'px';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            piece.style.animationDelay = (Math.random() * 1.5) + 's';
+            piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+            document.body.appendChild(piece);
+            setTimeout(() => piece.remove(), 5000);
+        }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+            e.preventDefault();
+            changeSlide(1);
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            changeSlide(-1);
+        }
+    });
+
+    // Touch swipe support
+    let touchStartX = 0;
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', (e) => {
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        const dy = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+            changeSlide(dx > 0 ? -1 : 1);
+        }
+    }, { passive: true });
+</script>
+
+</body>
+</html>
