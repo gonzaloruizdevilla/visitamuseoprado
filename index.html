@@ -134,6 +134,14 @@
         object-fit: contain;
         background: rgba(0,0,0,0.2);
     }
+    .slide-img[data-full] {
+        cursor: zoom-in;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .slide-img[data-full]:hover {
+        transform: scale(1.03);
+        box-shadow: 0 12px 38px rgba(0,0,0,0.5);
+    }
     .slide-img.wide {
         max-height: 200px;
         max-width: 100%;
@@ -299,6 +307,89 @@
         0% { opacity: 1; transform: translateY(0) rotate(0deg); }
         100% { opacity: 0; transform: translateY(100vh) rotate(720deg); }
     }
+
+    .image-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 44px;
+        background: rgba(10, 8, 18, 0.9);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+        transition: opacity 0.32s ease, visibility 0.32s ease;
+    }
+    .image-lightbox.open {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+    }
+    .lightbox-frame {
+        max-width: min(96vw, 1600px);
+        max-height: 92vh;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 12px;
+        justify-items: center;
+        transform: scale(0.92);
+        opacity: 0;
+        transition: transform 0.32s ease, opacity 0.32s ease;
+    }
+    .image-lightbox.open .lightbox-frame {
+        transform: scale(1);
+        opacity: 1;
+    }
+    .lightbox-img {
+        max-width: 100%;
+        max-height: calc(92vh - 48px);
+        object-fit: contain;
+        border-radius: 10px;
+        box-shadow: 0 20px 70px rgba(0,0,0,0.65);
+        cursor: zoom-out;
+        background: rgba(0,0,0,0.25);
+    }
+    .lightbox-caption {
+        font-family: 'Baloo 2', cursive;
+        font-size: 1rem;
+        color: rgba(255,255,255,0.78);
+        text-align: center;
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+    }
+    .lightbox-close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2001;
+        width: 44px;
+        height: 44px;
+        border: 2px solid rgba(255,255,255,0.32);
+        border-radius: 50%;
+        background: rgba(255,255,255,0.16);
+        color: white;
+        font-size: 2rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.25s ease, transform 0.25s ease;
+    }
+    .lightbox-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.08);
+    }
+
+    @media (max-width: 700px) {
+        .image-lightbox {
+            padding: 22px;
+        }
+        .lightbox-close {
+            top: 12px;
+            right: 12px;
+        }
+    }
 </style>
 </head>
 <body>
@@ -356,7 +447,7 @@
         <div class="slide-content">
             <span class="emoji-big">🎨</span>
             <h2>El Greco</h2>
-            <img class="slide-img tall" src="images/nobleman.jpg" alt="The Nobleman with his Hand on his Chest by El Greco">
+            <img class="slide-img tall" src="images/nobleman.jpg" data-full="images/high-res/nobleman.jpg" alt="The Nobleman with his Hand on his Chest by El Greco">
             <div class="img-caption">The Nobleman with his Hand on his Chest</div>
             <p>First, we saw paintings by El Greco. His people looked super tall and a little weird, like they were made of stretchy gum!</p>
             <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
@@ -370,7 +461,7 @@
         <div class="slide-content">
             <span class="emoji-big">🤔</span>
             <h2>That Serious Guy</h2>
-            <img class="slide-img tall" src="images/el-greco-portrait.jpg" alt="El Greco portrait">
+            <img class="slide-img tall" src="images/el-greco-portrait.jpg" data-full="images/high-res/el-greco-portrait.jpg" alt="El Greco portrait">
             <div class="img-caption">El Greco (self-portrait)</div>
             <p>The nobleman looked very serious and important, like a principal but fancier. The guide said El Greco used light and shapes to show how people were feeling inside!</p>
         </div>
@@ -394,7 +485,7 @@
         <div class="slide-content">
             <span class="emoji-big">👸🐕</span>
             <h2>Las Meninas</h2>
-            <img class="slide-img" src="images/las-meninas.jpg" alt="Las Meninas by Velazquez">
+            <img class="slide-img" src="images/las-meninas.jpg" data-full="images/high-res/las-meninas.jpg" alt="Las Meninas by Velazquez">
             <div class="img-caption">Las Meninas - Diego Velazquez, 1656</div>
             <p>It's a HUGE painting with a little princess, her helpers, and a big fluffy dog. The best part? Everyone in the painting is looking right at YOU!</p>
         </div>
@@ -416,7 +507,7 @@
         <div class="slide-content">
             <span class="emoji-big">🤴</span>
             <h2>The King's Painter</h2>
-            <img class="slide-img tall" src="images/philip-iv.jpg" alt="King Philip IV on horseback by Velazquez">
+            <img class="slide-img tall" src="images/philip-iv.jpg" data-full="images/high-res/philip-iv.jpg" alt="King Philip IV on horseback by Velazquez">
             <div class="img-caption">King Philip IV on Horseback - Velazquez</div>
             <p>Velazquez painted for King Philip IV. Imagine having someone paint your family instead of taking selfies. That was life back then!</p>
         </div>
@@ -428,7 +519,7 @@
         <div class="slide-content">
             <span class="emoji-big">🌙</span>
             <h2>Goya</h2>
-            <img class="slide-img tall" src="images/goya-selfportrait.jpg" alt="Goya self-portrait">
+            <img class="slide-img tall" src="images/goya-selfportrait.jpg" data-full="images/high-res/goya-selfportrait.jpg" alt="Goya self-portrait">
             <div class="img-caption">Goya - Self Portrait, 1815</div>
             <p>After that, we saw paintings by Goya. Some were bright and happy, but others were really dark and a little scary. He painted all kinds of feelings.</p>
             <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
@@ -442,7 +533,7 @@
         <div class="slide-content">
             <span class="emoji-big">😢</span>
             <h2>A Sad Painting</h2>
-            <img class="slide-img wide" src="images/third-of-may.jpg" alt="The Third of May 1808 by Goya">
+            <img class="slide-img wide" src="images/third-of-may.jpg" data-full="images/high-res/third-of-may.jpg" alt="The Third of May 1808 by Goya">
             <div class="img-caption">The Third of May 1808 - Francisco de Goya</div>
             <p>I remember "The Third of May 1808." It shows a really sad moment in history. It made me feel quiet inside. Some art makes you think a lot.</p>
         </div>
@@ -454,7 +545,7 @@
         <div class="slide-content">
             <span class="emoji-big">🍎🐍</span>
             <h2>Adam and Eve</h2>
-            <img class="slide-img" src="images/adam-eve.jpg" alt="Adam and Eve by Albrecht Durer">
+            <img class="slide-img" src="images/adam-eve.jpg" data-full="images/high-res/adam-eve.jpg" alt="Adam and Eve by Albrecht Durer">
             <div class="img-caption">Adam and Eve - Albrecht D&uuml;rer, 1507</div>
             <p>We saw a painting of Adam and Eve with a tree and a sneaky snake. The guide said this is one of the oldest stories ever told!</p>
         </div>
@@ -466,7 +557,7 @@
         <div class="slide-content">
             <span class="emoji-big">💧</span>
             <h2>Being Kind</h2>
-            <img class="slide-img wide" src="images/tintoretto.jpg" alt="Christ Washing the Disciples Feet by Tintoretto">
+            <img class="slide-img wide" src="images/tintoretto.jpg" data-full="images/high-res/tintoretto.jpg" alt="Christ Washing the Disciples Feet by Tintoretto">
             <div class="img-caption">Christ Washing the Disciples' Feet - Tintoretto</div>
             <p>We also saw Jesus washing the feet of his friends. That means even if you're super important, you should still be nice and help others. I liked that lesson!</p>
         </div>
@@ -515,12 +606,24 @@
     <div class="hint">Use arrow keys, swipe, or click to navigate</div>
 </div>
 
+<div class="image-lightbox" id="imageLightbox" aria-hidden="true">
+    <button class="lightbox-close" id="lightboxClose" aria-label="Close image">&times;</button>
+    <div class="lightbox-frame">
+        <img class="lightbox-img" id="lightboxImg" src="" alt="">
+        <div class="lightbox-caption" id="lightboxCaption"></div>
+    </div>
+</div>
+
 <script>
     const slides = document.querySelectorAll('.slide');
     const dotsContainer = document.getElementById('dots');
     const totalSpan = document.getElementById('total');
     const currentSpan = document.getElementById('current');
     const progressBar = document.getElementById('progress');
+    const lightbox = document.getElementById('imageLightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const lightboxClose = document.getElementById('lightboxClose');
     let currentSlide = 0;
 
     // Apply backgrounds
@@ -590,6 +693,45 @@
         btn.textContent = fact.classList.contains('visible') ? '👀 Hide Fact' : '🤓 Fun Fact!';
     }
 
+    function getImageCaption(img) {
+        const caption = img.nextElementSibling;
+        if (caption && caption.classList.contains('img-caption')) {
+            return caption.textContent;
+        }
+        return img.alt;
+    }
+
+    function openLightbox(img) {
+        lightboxImg.src = img.dataset.full;
+        lightboxImg.alt = img.alt;
+        lightboxCaption.textContent = getImageCaption(img);
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeLightbox() {
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+    }
+
+    document.querySelectorAll('.slide-img[data-full]').forEach(img => {
+        img.setAttribute('tabindex', '0');
+        img.setAttribute('role', 'button');
+        img.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openLightbox(img);
+        });
+        img.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openLightbox(img);
+            }
+        });
+    });
+
+    lightbox.addEventListener('click', closeLightbox);
+    lightboxClose.addEventListener('click', closeLightbox);
+
     // Emoji click spin
     document.querySelectorAll('.emoji-big').forEach(emoji => {
         emoji.addEventListener('click', (e) => {
@@ -604,7 +746,7 @@
 
     // Click sparkle effect
     document.addEventListener('click', (e) => {
-        if (e.target.closest('.nav-btn') || e.target.closest('.dot') || e.target.closest('.fun-fact-btn')) return;
+        if (e.target.closest('.nav-btn') || e.target.closest('.dot') || e.target.closest('.fun-fact-btn') || e.target.closest('.image-lightbox') || e.target.closest('.slide-img[data-full]')) return;
         createSparkles(e.clientX, e.clientY);
     });
 
@@ -646,6 +788,13 @@
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
+        if (lightbox.classList.contains('open')) {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeLightbox();
+            }
+            return;
+        }
         if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
             e.preventDefault();
             changeSlide(1);
@@ -664,6 +813,7 @@
     }, { passive: true });
 
     document.addEventListener('touchend', (e) => {
+        if (lightbox.classList.contains('open')) return;
         const dx = e.changedTouches[0].clientX - touchStartX;
         const dy = e.changedTouches[0].clientY - touchStartY;
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
