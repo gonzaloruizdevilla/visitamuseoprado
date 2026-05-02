@@ -447,8 +447,8 @@
         <div class="slide-content">
             <span class="emoji-big">🎨</span>
             <h2>El Greco</h2>
-            <img class="slide-img tall" src="images/nobleman.jpg" data-full="images/high-res/nobleman.jpg" alt="The Nobleman with his Hand on his Chest by El Greco">
-            <div class="img-caption">The Nobleman with his Hand on his Chest</div>
+            <img class="slide-img tall" src="images/el-greco-portrait.jpg" data-full="images/high-res/el-greco-portrait.jpg" alt="El Greco portrait">
+            <div class="img-caption">El Greco (self-portrait)</div>
             <p>First, we saw paintings by El Greco. His people looked super tall and a little weird, like they were made of stretchy gum!</p>
             <button class="fun-fact-btn" onclick="toggleFact(this)">🤓 Fun Fact!</button>
             <div class="fun-fact">El Greco means "The Greek"! His real name was Domenikos Theotokopoulos. Try saying that fast!</div>
@@ -461,8 +461,8 @@
         <div class="slide-content">
             <span class="emoji-big">🤔</span>
             <h2>That Serious Guy</h2>
-            <img class="slide-img tall" src="images/el-greco-portrait.jpg" data-full="images/high-res/el-greco-portrait.jpg" alt="El Greco portrait">
-            <div class="img-caption">El Greco (self-portrait)</div>
+            <img class="slide-img tall" src="images/nobleman.jpg" data-full="images/high-res/nobleman.jpg" alt="The Nobleman with his Hand on his Chest by El Greco">
+            <div class="img-caption">The Nobleman with his Hand on his Chest</div>
             <p>The nobleman looked very serious and important, like a principal but fancier. The guide said El Greco used light and shapes to show how people were feeling inside!</p>
         </div>
     </div>
@@ -624,6 +624,8 @@
     const lightboxImg = document.getElementById('lightboxImg');
     const lightboxCaption = document.getElementById('lightboxCaption');
     const lightboxClose = document.getElementById('lightboxClose');
+    const fullImageCache = new Map();
+    let lightboxRequestId = 0;
     let currentSlide = 0;
 
     // Apply backgrounds
@@ -701,20 +703,46 @@
         return img.alt;
     }
 
-    function openLightbox(img) {
-        lightboxImg.src = img.dataset.full;
+    function preloadFullImage(src) {
+        if (!fullImageCache.has(src)) {
+            const preload = new Image();
+            const promise = new Promise((resolve) => {
+                preload.onload = () => resolve(preload);
+                preload.onerror = () => resolve(preload);
+            });
+            preload.src = src;
+            fullImageCache.set(src, promise);
+        }
+        return fullImageCache.get(src);
+    }
+
+    async function openLightbox(img) {
+        const fullSrc = img.dataset.full;
+        const requestId = ++lightboxRequestId;
+
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden', 'true');
+        lightboxImg.removeAttribute('src');
         lightboxImg.alt = img.alt;
         lightboxCaption.textContent = getImageCaption(img);
+
+        await preloadFullImage(fullSrc);
+        if (requestId !== lightboxRequestId) return;
+
+        lightboxImg.src = fullSrc;
         lightbox.classList.add('open');
         lightbox.setAttribute('aria-hidden', 'false');
     }
 
     function closeLightbox() {
+        lightboxRequestId++;
         lightbox.classList.remove('open');
         lightbox.setAttribute('aria-hidden', 'true');
     }
 
-    document.querySelectorAll('.slide-img[data-full]').forEach(img => {
+    const zoomableImages = document.querySelectorAll('.slide-img[data-full]');
+    zoomableImages.forEach(img => {
+        preloadFullImage(img.dataset.full);
         img.setAttribute('tabindex', '0');
         img.setAttribute('role', 'button');
         img.addEventListener('click', (e) => {
